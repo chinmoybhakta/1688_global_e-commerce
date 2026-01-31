@@ -10,15 +10,29 @@ class LandingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: const [
-            Navbar(),
-            HeroSection(),
-            FeaturesSection(),
-            FooterSection(),
-          ],
-        ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
+              ),
+              child: IntrinsicHeight(
+                child: Column(
+                  children: const [
+                    Navbar(),
+                    HeroSection(),
+                    FeaturesSection(),
+
+                    Spacer(), // ⬅ pushes footer to bottom
+
+                    FooterSection(),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
