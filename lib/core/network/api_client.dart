@@ -44,7 +44,7 @@ class ApiClient {
   }
 
   /// POST request
-  static Future<dynamic> postRequest({
+  Future<dynamic> postRequest({
     required String endpoints,
     Map<String, dynamic>? body,
     Map<String, String>? headers,
@@ -71,7 +71,7 @@ class ApiClient {
   }
 
   /// PUT request
-  static Future<dynamic> putRequest({
+  Future<dynamic> putRequest({
     Map<String, String>? headers,
     required String endpoints,
     required Map<String, dynamic> body,
@@ -85,6 +85,7 @@ class ApiClient {
           headers: headers ?? {"Content-Type": "application/json"},
         ),
       );
+      logResponseBody(response);
       return ResposeHandle.handleResponse(response);
     } catch (e) {
       if (e is DioException) {
@@ -96,7 +97,7 @@ class ApiClient {
   }
 
   /// PATCH request
-  static Future<dynamic> patchRequest({
+  Future<dynamic> patchRequest({
     required String endpoints,
     Map<String, dynamic>? body,
     Map<String, String>? headers,
@@ -111,7 +112,7 @@ class ApiClient {
           headers: headers ?? {"Content-Type": "application/json"},
         ),
       );
-
+      logResponseBody(response);
       return ResposeHandle.handleResponse(response);
     } catch (e) {
       if (e is DioException) {
@@ -123,7 +124,7 @@ class ApiClient {
   }
 
   /// PATCH request
-  static Future<dynamic> deleteRequest({
+  Future<dynamic> deleteRequest({
     required String endpoints,
     Map<String, String>? headers,
   }) async {
@@ -139,7 +140,7 @@ class ApiClient {
       debugPrint("delete Request Successful");
       debugPrint("Status: ${response.statusCode}");
       debugPrint("Data: ${response.data}");
-
+      logResponseBody(response);
       return ResposeHandle.handleResponse(response);
     } catch (e) {
       if (e is DioException) {

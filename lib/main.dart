@@ -1,8 +1,11 @@
-import 'package:ecommece_site_1688/feature/onboarding/landing_page.dart';
+import 'package:ecommece_site_1688/core/resource/theme_manager.dart';
+import 'package:ecommece_site_1688/core/route/route_config.dart';
+import 'package:ecommece_site_1688/core/route/route_name.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -12,9 +15,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: '1688 E-Commerce',
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.deepPurple),
-      home: const LandingPage(),
+      title: 'Digital Agency',
+      theme: getApplicationTheme(),
+      themeMode: ThemeMode.system,
+      onGenerateRoute: AppRouter.generateRoute,
+      initialRoute: RouteNames.splashScreen,
     );
   }
 }
