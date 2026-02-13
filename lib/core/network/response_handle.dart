@@ -5,7 +5,6 @@ class ResposeHandle {
    static dynamic handleResponse(Response response) {
     try {
       if (response.statusCode == 200 || response.statusCode == 201) {
-      log("Success: ${response.data}");
         return response.data;
       } else {
         log("Error Response: ${response.statusCode} - ${response.data}");

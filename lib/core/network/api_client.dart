@@ -4,15 +4,16 @@ import 'package:dio/dio.dart';
 import 'package:ecommece_site_1688/core/network/api_endpoint.dart';
 import 'package:ecommece_site_1688/core/network/error_handle.dart';
 import 'package:ecommece_site_1688/core/network/response_handle.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiClient {
   static final Dio _dio = Dio(
     BaseOptions(
       baseUrl: ApiEndpoints.baseUrl,
-      connectTimeout: Duration(seconds: 10),
-      sendTimeout: Duration(seconds: 10),
-      receiveTimeout: Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 20),
+      // Only set sendTimeout if NOT on web
+      sendTimeout: kIsWeb ? null : const Duration(seconds: 20),
+      receiveTimeout: const Duration(seconds: 20),
     ),
   );
 
@@ -22,12 +23,12 @@ class ApiClient {
     Map<String, String>? headers,
   }) async {
     try {
-      log("\n\n\n\nurl :${ApiEndpoints.baseUrl}/$endpoints \n\n\n\n");
+      log("\n\n\n\nurl :${ApiEndpoints.baseUrl}$endpoints \n\n\n\n");
 
       final response = await _dio.get(
         endpoints,
         options: Options(
-          headers: headers ?? {"Content-Type": "application/json"},
+          headers: headers ?? {"accept": "application/json"},
         ),
       );
 

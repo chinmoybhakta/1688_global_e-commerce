@@ -1,8 +1,10 @@
 import 'package:ecommece_site_1688/core/const/app_colors.dart';
+import 'package:ecommece_site_1688/core/data/riverpod/search_notifier.dart';
 import 'package:ecommece_site_1688/core/route/route_name.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
@@ -10,7 +12,7 @@ class SplashScreen extends StatefulWidget {
   _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -28,9 +30,11 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Navigate to home after delay
-    Future.delayed(const Duration(seconds: 10), () {
+    Future.microtask(() async {
+      await ref.read(searchProvider.notifier).fetchSearchItems(" ", 1);
+
       if (context.mounted) {
+        // ignore: use_build_context_synchronously
         Navigator.pushReplacementNamed(context, RouteNames.homeScreen);
       }
     });
@@ -52,11 +56,7 @@ class _SplashScreenState extends State<SplashScreen>
           children: [
             ScaleTransition(
               scale: _animation,
-              child: Image.asset(
-                'assets/logo.jpg',
-                width: 200,
-                height: 200,
-              ),
+              child: Image.asset('assets/logo.png', width: 200, height: 200),
             ),
             const SizedBox(height: 10),
             FadeTransition(
@@ -71,7 +71,9 @@ class _SplashScreenState extends State<SplashScreen>
               width: 200,
               child: LinearProgressIndicator(
                 backgroundColor: Colors.grey[200],
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  AppColors.primaryColor,
+                ),
               ),
             ),
           ],
