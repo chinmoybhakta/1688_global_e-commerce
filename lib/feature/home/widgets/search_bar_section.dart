@@ -12,38 +12,28 @@ class SearchBarSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: AppColors.primaryColor),
-          const SizedBox(width: 10),
-
-          Expanded(
-            child: TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                hintText: "Search products...",
-                border: InputBorder.none,
-              ),
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: controller,
+            onSubmitted: (value) => onSearch(),
+            decoration: const InputDecoration(
+              hintText: "Search products...",
+              border: InputBorder.none,
             ),
           ),
-
-          IconButton(
-            onPressed: onSearch,
-            icon: const Icon(
-              Icons.arrow_forward_ios,
-              size: 18,
-              color: AppColors.primaryColor,
-            ),
+        ),
+    
+        IconButton(
+          onPressed: onSearch,
+          icon: const Icon(
+            Icons.search,
+            size: 18,
+            color: AppColors.primaryColor,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

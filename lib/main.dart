@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Digital Agency',
+      title: '1688 Global',
       theme: getApplicationTheme(),
       themeMode: ThemeMode.system,
       onGenerateRoute: AppRouter.generateRoute,

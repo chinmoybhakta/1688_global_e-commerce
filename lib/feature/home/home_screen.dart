@@ -51,19 +51,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final isProductLoading = productState?.isLoading ?? false;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFB),
+      backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          "1688 Global",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.primaryColor,
-          ),
+        leading: Image.asset('assets/logo.png', width: 40, height: 40),
+        title: SearchBarSection(
+          controller: _searchController,
+          onSearch: () async {
+            final query = _searchController.text.trim();
+            await ref.read(searchProvider.notifier).fetchSearchItems(query, 1);
+          },
         ),
         centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: AppColors.semiPrimaryColor, height: 1),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -75,28 +79,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 absorbing: isProductLoading,
                 child: Column(
                   children: [
-                    // ✅ Search Bar
-                    SearchBarSection(
-                      controller: _searchController,
-                      onSearch: () async {
-                        final query = _searchController.text.trim();
-                        await ref
-                            .read(searchProvider.notifier)
-                            .fetchSearchItems(query, 1);
-                      },
-                    ),
-
                     const SizedBox(height: 20),
 
                     // ✅ Product Section
                     Expanded(
                       child: searchState.isLoading
-                          ? const Center(child: CircularProgressIndicator())
+                          ? Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.primaryColor,
+                                ),
+                              ),
+                            )
                           : searchState.error != null
-                          ? const Center(
-                              child: Text(
-                                "No products found",
-                                style: TextStyle(fontSize: 16),
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.search_off,
+                                    size: 64,
+                                    color: AppColors.textSecondaryColor,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    "No products found",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: AppColors.textSecondaryColor,
+                                    ),
+                                  ),
+                                ],
                               ),
                             )
                           : GridView.builder(
@@ -129,12 +142,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                                       log("🟡 Fetching product: $numIid");
 
-                                      // Fetch the product and wait for it
                                       await ref
                                           .read(productProvider.notifier)
                                           .fetchProduct(numIid.toString());
 
-                                      // Get the product state after fetch
                                       final productState = ref.read(
                                         productProvider,
                                       );
@@ -150,9 +161,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                             context,
                                             MaterialPageRoute(
                                               builder: (_) => ProductScreen(
-                                                item: productState!
-                                                    .data!
-                                                    .item, // Pass the item
+                                                item: productState!.data!.item,
                                               ),
                                             ),
                                           );
@@ -163,31 +172,105 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         );
                                         Fluttertoast.showToast(
                                           msg: "Failed to load product data",
+                                          backgroundColor: Colors.red,
+                                          textColor: Colors.white,
                                         );
                                       }
                                     } catch (e) {
                                       log("🔴 Exception: $e");
-                                      Fluttertoast.showToast(msg: "Error: $e");
+                                      Fluttertoast.showToast(
+                                        msg: "Error: $e",
+                                        backgroundColor: Colors.red,
+                                        textColor: Colors.white,
+                                      );
                                     }
                                   },
                                 );
                               },
                             ),
                     ),
-                    // SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () async {
-                        await ref.read(searchProvider.notifier).loadMore();
-                      },
-                      child: Text("Load More"),
+
+                    // Load More Button
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16.0),
+                      child: ElevatedButton(
+                        onPressed: searchState.isLoading
+                            ? null
+                            : () async {
+                                await ref
+                                    .read(searchProvider.notifier)
+                                    .loadMore();
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(150, 45),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 2,
+                        ),
+                        child: searchState.isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                "Load More Products",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
             if (isProductLoading) ...[
-              const Positioned.fill(
-                child: Center(child: CircularProgressIndicator()),
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryColor,
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.semiPrimaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "Loading product details...",
+                            style: TextStyle(
+                              color: AppColors.textPrimaryColor,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ],

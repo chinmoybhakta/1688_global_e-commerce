@@ -1,4 +1,5 @@
 import 'package:ecommece_site_1688/core/const/app_colors.dart';
+import 'package:ecommece_site_1688/core/data/repository/repository_impl.dart';
 import 'package:flutter/material.dart';
 
 class ProductCard extends StatelessWidget {
@@ -26,65 +27,92 @@ class ProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey,
+              color: AppColors.textSecondaryColor.withValues(alpha: 0.1),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
-          mainAxisAlignment: .spaceAround,
-          crossAxisAlignment: .center,
           children: [
-            // Product Image
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(12),
-              ),
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                height: 150,
-                width: 150,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(Icons.image_not_supported);
-                },
-              ),
-            ),
+            // Product Image (60% of card height)
+            Expanded(
+              flex: 7,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(12)),
+                child: Image.network(
+                  RepositoryImpl().getProxiedImageUrl(imageUrl),
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  // ✅ Loading UI
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
 
-            const SizedBox(height: 8),
+                    return Container(
+                      color: AppColors.secondaryColor,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primaryColor,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
 
-            // Title
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Text(
-                title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-
-            const SizedBox(height: 6),
-
-            // Price
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Text(
-                price,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryColor,
+                  // ❌ Error UI
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: AppColors.secondaryColor,
+                      child: Icon(
+                        Icons.image_not_supported,
+                        size: 40,
+                        color: AppColors.textSecondaryColor,
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
 
-            const SizedBox(height: 10),
+            // Title & Price Section (40% of card height)
+            Expanded(
+              flex: 3,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Title
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimaryColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    // Price
+                    Text(
+                      price,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

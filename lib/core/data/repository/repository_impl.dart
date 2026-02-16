@@ -7,7 +7,6 @@ import 'package:ecommece_site_1688/core/network/api_endpoint.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class RepositoryImpl extends Repository {
-
   final header = {"accept": "application/json"};
   @override
   Future<ProductResponse?> getItem({required String numiid}) async {
@@ -21,8 +20,12 @@ class RepositoryImpl extends Repository {
 
       if (response['error_code'] == "0000") {
         log("🟡 Repository: Response keys: ${response.keys}");
-        log("🟡 Repository: 'item' key exists? ${response.containsKey('item')}");
-        log("🟢 Repository: Parsed successfully. Item exists: ${ProductResponse.fromJson(response).item != null}");
+        log(
+          "🟡 Repository: 'item' key exists? ${response.containsKey('item')}",
+        );
+        log(
+          "🟢 Repository: Parsed successfully. Item exists: ${ProductResponse.fromJson(response).item != null}",
+        );
         return ProductResponse.fromJson(response);
       } else {
         Fluttertoast.showToast(msg: response['error'] ?? 'Unknown error');
@@ -35,7 +38,10 @@ class RepositoryImpl extends Repository {
   }
 
   @override
-  Future<SearchItemResponse?> searchItems({required String query, required int page}) async {
+  Future<SearchItemResponse?> searchItems({
+    required String query,
+    required int page,
+  }) async {
     try {
       final response = await ApiClient().getRequest(
         endpoints: ApiEndpoints.serachItems(query, page),
@@ -52,5 +58,11 @@ class RepositoryImpl extends Repository {
       log("🔴 Repository: Error - $e");
       rethrow;
     }
+  }
+
+  @override
+  String getProxiedImageUrl(String originalUrl) {
+    final encodedUrl = Uri.encodeComponent(originalUrl);
+    return '${ApiEndpoints.baseUrl}proxy-image?url=$encodedUrl';
   }
 }

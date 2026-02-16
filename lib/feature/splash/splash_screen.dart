@@ -63,7 +63,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               opacity: _animation,
               child: const Text(
                 'Wholesale Marketplace',
-                style: TextStyle(fontSize: 16, color: AppColors.secondaryColor),
+                style: TextStyle(fontSize: 16, color: AppColors.semiPrimaryColor),
               ),
             ),
             const SizedBox(height: 50),

@@ -1,3 +1,4 @@
+import 'package:ecommece_site_1688/core/const/app_colors.dart';
 import 'package:flutter/material.dart';
 
 Widget buildSellerScore(String label, String score) {
@@ -8,7 +9,7 @@ Widget buildSellerScore(String label, String score) {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey[600],
+            color: AppColors.textSecondaryColor,
           ),
         ),
         const SizedBox(height: 2),

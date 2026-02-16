@@ -1,10 +1,11 @@
 import 'package:ecommece_site_1688/core/const/app_colors.dart';
 import 'package:ecommece_site_1688/core/data/model/product_required_details/order_details.dart';
+import 'package:ecommece_site_1688/core/service/google_sheets_service.dart';
 import 'package:ecommece_site_1688/feature/contact/widgets/order_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 
 class ContactScreen extends StatefulWidget {
-  final OrderDetails orderDetails; // Receiving product data from product screen
+  final OrderDetails orderDetails;
 
   const ContactScreen({super.key, required this.orderDetails});
 
@@ -13,10 +14,8 @@ class ContactScreen extends StatefulWidget {
 }
 
 class _ContactScreenState extends State<ContactScreen> {
-  // Form key for validation
   final _formKey = GlobalKey<FormState>();
 
-  // Text controllers for customer fields (empty initially)
   late final TextEditingController _nameController;
   late final TextEditingController _emailController;
   late final TextEditingController _phoneController;
@@ -26,8 +25,6 @@ class _ContactScreenState extends State<ContactScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Initialize controllers with empty values (user will fill these)
     _nameController = TextEditingController();
     _emailController = TextEditingController();
     _phoneController = TextEditingController();
@@ -37,7 +34,6 @@ class _ContactScreenState extends State<ContactScreen> {
 
   @override
   void dispose() {
-    // Dispose all controllers
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
@@ -46,20 +42,15 @@ class _ContactScreenState extends State<ContactScreen> {
     super.dispose();
   }
 
-  // Fixed: Moved this method outside and made it a proper method
   Future<void> _showOrderSummaryDialog() async {
     if (_formKey.currentState!.validate()) {
-      // Create complete order details with both product and customer data
       final completeOrder = OrderDetails(
-        // Product data (from previous screen)
         productId: widget.orderDetails.productId,
         productTitle: widget.orderDetails.productTitle,
         productVariant: widget.orderDetails.productVariant,
         productVariantPrice: widget.orderDetails.productVariantPrice,
         productQuantity: widget.orderDetails.productQuantity,
         totalPrice: widget.orderDetails.totalPrice,
-
-        // Customer data (filled by user)
         customerName: _nameController.text.trim(),
         customerEmail: _emailController.text.trim(),
         customerPhone: _phoneController.text.trim(),
@@ -67,30 +58,74 @@ class _ContactScreenState extends State<ContactScreen> {
         customerWhatsapp: _whatsappController.text.trim(),
       );
 
-      await showDialog(
+      showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (BuildContext context) {
-          return OrderConfirmationDialog(orderDetails: completeOrder);
-        },
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+          ),
+        ),
       );
+
+      final saved = await GoogleSheetsService.saveOrder(completeOrder);
+
+      // ignore: use_build_context_synchronously
+      Navigator.pop(context);
+
+      if (saved) {
+        _nameController.clear();
+        _emailController.clear();
+        _phoneController.clear();
+        _addressController.clear();
+        _whatsappController.clear();
+        
+        await showDialog(
+          // ignore: use_build_context_synchronously
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return OrderConfirmationDialog(orderDetails: completeOrder);
+          },
+        );
+      } else {
+        await showDialog(
+          // ignore: use_build_context_synchronously
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text(
+              'Error',
+              style: TextStyle(color: Colors.red),
+            ),
+            content: const Text('Failed to save order. Please try again.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primaryColor,
+                ),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 
-  // Fixed: This method now properly calls _showOrderSummaryDialog
   void _submitOrder() {
-    _showOrderSummaryDialog(); // Simply call the dialog method
+    _showOrderSummaryDialog();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
-          'Contact Information',
+          'Order Information',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -98,7 +133,7 @@ class _ContactScreenState extends State<ContactScreen> {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimaryColor),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -106,15 +141,15 @@ class _ContactScreenState extends State<ContactScreen> {
         key: _formKey,
         child: CustomScrollView(
           slivers: [
-            // Product Summary Section (Read-only, shows selected product data)
+            // Product Summary Section
             SliverToBoxAdapter(
               child: Container(
                 margin: const EdgeInsets.all(16),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.grey[50],
+                  color: AppColors.secondaryColor,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[200]!),
+                  border: Border.all(color: AppColors.primaryColor.withOpacity(0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,6 +159,7 @@ class _ContactScreenState extends State<ContactScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimaryColor,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -131,12 +167,12 @@ class _ContactScreenState extends State<ContactScreen> {
                       'Product:',
                       widget.orderDetails.productTitle ?? 'N/A',
                     ),
-                    const Divider(height: 16),
+                    const Divider(height: 16, color: AppColors.textSecondaryColor),
                     _buildReadOnlyRow(
                       'Variant:',
                       widget.orderDetails.productVariant ?? 'N/A',
                     ),
-                    const Divider(height: 16),
+                    const Divider(height: 16, color: AppColors.textSecondaryColor),
                     Row(
                       children: [
                         Expanded(
@@ -165,7 +201,11 @@ class _ContactScreenState extends State<ContactScreen> {
                 delegate: SliverChildListDelegate([
                   const Text(
                     'Contact Details',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 16, 
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimaryColor,
+                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -175,10 +215,15 @@ class _ContactScreenState extends State<ContactScreen> {
                     decoration: InputDecoration(
                       labelText: 'Full Name *',
                       hintText: 'Enter your full name',
+                      labelStyle: const TextStyle(color: AppColors.textSecondaryColor),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.primaryColor, width: 2),
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      prefixIcon: const Icon(Icons.person_outline),
+                      prefixIcon: const Icon(Icons.person_outline, color: AppColors.primaryColor),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -196,18 +241,21 @@ class _ContactScreenState extends State<ContactScreen> {
                     decoration: InputDecoration(
                       labelText: 'Email Address *',
                       hintText: 'Enter your email',
+                      labelStyle: const TextStyle(color: AppColors.textSecondaryColor),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.primaryColor, width: 2),
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      prefixIcon: const Icon(Icons.email_outlined),
+                      prefixIcon: const Icon(Icons.email_outlined, color: AppColors.primaryColor),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email';
                       }
-                      if (!RegExp(
-                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                      ).hasMatch(value)) {
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
                         return 'Please enter a valid email';
                       }
                       return null;
@@ -222,14 +270,19 @@ class _ContactScreenState extends State<ContactScreen> {
                     decoration: InputDecoration(
                       labelText: 'Phone Number *',
                       hintText: 'Enter your phone number',
+                      labelStyle: const TextStyle(color: AppColors.textSecondaryColor),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.primaryColor, width: 2),
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      prefixIcon: const Icon(Icons.phone_outlined),
+                      prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.primaryColor),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your phone number';
+                      if (value == null || value.isEmpty || value.trim().length < 10 || !RegExp(r'^\+?[0-9\s]+$').hasMatch(value)) {
+                        return 'Please enter a valid phone number';
                       }
                       return null;
                     },
@@ -241,13 +294,24 @@ class _ContactScreenState extends State<ContactScreen> {
                     controller: _whatsappController,
                     keyboardType: TextInputType.phone,
                     decoration: InputDecoration(
-                      labelText: 'WhatsApp Number (Optional)',
+                      labelText: 'WhatsApp Number *',
                       hintText: 'Enter your WhatsApp number',
+                      labelStyle: const TextStyle(color: AppColors.textSecondaryColor),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.primaryColor, width: 2),
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      prefixIcon: const Icon(Icons.chat_outlined),
+                      prefixIcon: const Icon(Icons.chat_outlined, color: AppColors.primaryColor),
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty || value.trim().length < 10 || !RegExp(r'^\+?[0-9\s]+$').hasMatch(value)) {
+                        return 'Please enter a valid WhatsApp number';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 
@@ -258,13 +322,15 @@ class _ContactScreenState extends State<ContactScreen> {
                     decoration: InputDecoration(
                       labelText: 'Shipping Address *',
                       hintText: 'Enter your complete shipping address',
+                      labelStyle: const TextStyle(color: AppColors.textSecondaryColor),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.primaryColor, width: 2),
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      prefixIcon: const Padding(
-                        padding: EdgeInsets.only(bottom: 50),
-                        child: Icon(Icons.location_on_outlined),
-                      ),
+                      prefixIcon: Icon(Icons.location_on_outlined, color: AppColors.primaryColor),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -277,13 +343,15 @@ class _ContactScreenState extends State<ContactScreen> {
 
                   // Submit Button
                   ElevatedButton(
-                    onPressed: _submitOrder, // This now calls the correct method
+                    onPressed: _submitOrder,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
+                      foregroundColor: Colors.white,
                       minimumSize: const Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
+                      elevation: 2,
                     ),
                     child: const Text(
                       'Confirm Order',
@@ -311,13 +379,20 @@ class _ContactScreenState extends State<ContactScreen> {
           width: 70,
           child: Text(
             label,
-            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            style: TextStyle(
+              color: AppColors.textSecondaryColor,
+              fontSize: 14,
+            ),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            style: const TextStyle(
+              fontSize: 14, 
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimaryColor,
+            ),
           ),
         ),
       ],

@@ -1,3 +1,4 @@
+import 'package:ecommece_site_1688/core/const/app_colors.dart';
 import 'package:flutter/material.dart';
 
 Widget buildDetailRow(String label, String value) {
@@ -11,7 +12,7 @@ Widget buildDetailRow(String label, String value) {
             child: Text(
               label,
               style: TextStyle(
-                color: Colors.grey[600],
+                color: AppColors.textSecondaryColor,
                 fontSize: 14,
               ),
             ),
