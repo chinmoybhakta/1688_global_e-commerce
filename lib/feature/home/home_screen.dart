@@ -1,8 +1,10 @@
 import 'dart:developer';
 import 'package:ecommece_site_1688/core/const/app_colors.dart';
+import 'package:ecommece_site_1688/core/data/riverpod/cart_notifier.dart';
 import 'package:ecommece_site_1688/core/data/riverpod/product_notifier.dart';
 import 'package:ecommece_site_1688/core/data/riverpod/search_notifier.dart';
 import 'package:ecommece_site_1688/core/service/currency_service.dart';
+import 'package:ecommece_site_1688/feature/home/cart_screen.dart';
 import 'package:ecommece_site_1688/feature/home/widgets/product_card.dart';
 import 'package:ecommece_site_1688/feature/home/widgets/search_bar_section.dart';
 import 'package:ecommece_site_1688/feature/product/product_screen.dart';
@@ -49,13 +51,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final productState = ref.watch(productProvider);
     final isProductLoading = productState?.isLoading ?? false;
+    final cartState = ref.watch(cartProvider);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: Image.asset('assets/logo.png', width: 40, height: 40),
+        toolbarHeight: 200,
+        leadingWidth: 200,
+        leading: Image.asset('assets/logo.png', fit: BoxFit.contain),
         title: SearchBarSection(
           controller: _searchController,
           onSearch: () async {
@@ -64,6 +69,63 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           },
         ),
         centerTitle: true,
+        actions: [
+          Container(
+            width: 48,
+            height: 48,
+            margin: const EdgeInsets.only(right: 8),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Center(
+                  child: IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CartScreen(),
+                        ),
+                      );
+                    },
+                    icon: Icon(
+                      Icons.shopping_cart_outlined,
+                      color: AppColors.primaryColor,
+                      size: 28,
+                    ),
+                  ),
+                ),
+                if (ref.read(cartProvider.notifier).hasItems) ...[
+                  Positioned(
+                    top: 0,
+                    bottom: 24,
+                    right: 2,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Center(
+                        child: Text(
+                          ref.read(cartProvider.notifier).totalItems.toString(),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(color: AppColors.semiPrimaryColor, height: 1),

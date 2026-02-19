@@ -1,13 +1,17 @@
+import 'dart:developer';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:ecommece_site_1688/core/const/app_colors.dart';
 import 'package:ecommece_site_1688/core/data/model/get_item/item.dart';
+import 'package:ecommece_site_1688/core/data/model/product_required_details/order.dart';
 import 'package:ecommece_site_1688/core/data/model/product_required_details/order_details.dart';
 import 'package:ecommece_site_1688/core/data/repository/repository_impl.dart';
+import 'package:ecommece_site_1688/core/data/riverpod/cart_notifier.dart';
 import 'package:ecommece_site_1688/core/service/currency_service.dart';
 import 'package:ecommece_site_1688/feature/contact/contact_screen.dart';
 import 'package:ecommece_site_1688/feature/product/widgets/build_detail_row.dart';
 import 'package:ecommece_site_1688/feature/product/widgets/build_seller_score.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -521,7 +525,8 @@ Go to this website to order: https://1688global.com.bd
                             color: AppColors.primaryColor,
                           ),
                         ),
-                        if (originalPrice != null && originalPrice != _getCurrentPrice()) ...[
+                        if (originalPrice != null &&
+                            originalPrice != _getCurrentPrice()) ...[
                           const SizedBox(width: 12),
                           Text(
                             originalPrice,
@@ -957,41 +962,88 @@ Go to this website to order: https://1688global.com.bd
         child: SafeArea(
           child: Row(
             children: [
-              // Chat/Customer Service
+              // Add to Cart
               Expanded(
-                flex: 1,
-                child: OutlinedButton(
-                  onPressed: _openWhatsApp,
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: BorderSide(color: AppColors.primaryColor),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    foregroundColor: AppColors.primaryColor,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.chat_outlined,
-                        color: AppColors.primaryColor,
-                        size: 20,
+                flex: 2,
+                child: Consumer(
+                  builder: (_, ref, _) {
+                    return ElevatedButton(
+                      onPressed: () {
+                        if ((widget.item?.skus?.sku?.isNotEmpty ?? false) &&
+                            _selectedSkuIndex == -1) {
+                          Fluttertoast.showToast(
+                            msg: "Please select a variant",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                          );
+                          return;
+                        }
+                        final singleOrderDetails = Order(
+                          productId: widget.item?.numIid,
+                          productTitle: widget.item?.title,
+                          productVariant:
+                              (widget.item?.skus?.sku?.isNotEmpty ?? false)
+                              ? (widget
+                                    .item
+                                    ?.skus
+                                    ?.sku?[_selectedSkuIndex]
+                                    .propertiesName)
+                              : "N/A",
+                          productVariantPrice: _getCurrentPrice(),
+                          productQuantity: _quantity.toString(),
+                          productStock: _getCurrentStock().toString(),
+                          productImage: widget.item?.picUrl,
+                        );
+
+                        try {
+                          ref
+                              .read(cartProvider.notifier)
+                              .addToCart(singleOrderDetails);
+                          Fluttertoast.showToast(
+                            msg: "Added to cart",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            backgroundColor: AppColors.primaryColor,
+                            textColor: Colors.white,
+                          );
+                        } catch (e) {
+                          log("Error in adding to cart: $e");
+                          Fluttertoast.showToast(
+                            msg: "Failed to add to cart",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.secondaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 2,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Chat',
+                      child: const Text(
+                        'Add to Cart',
                         style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.primaryColor,
-                          fontSize: 12,
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
-              const SizedBox(width: 24),
-              // Buy Now
+
+              SizedBox(width: 24),
+
+              // Place Order
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
@@ -1036,7 +1088,7 @@ Go to this website to order: https://1688global.com.bd
                       context,
                       MaterialPageRoute(
                         builder: (_) =>
-                            ContactScreen(orderDetails: orderDetails),
+                            ContactScreen(orderDetails: [orderDetails]),
                       ),
                     );
                   },
@@ -1052,6 +1104,41 @@ Go to this website to order: https://1688global.com.bd
                   child: const Text(
                     'Place Order',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+
+              Spacer(),
+              // Chat/Customer Service
+              Expanded(
+                flex: 1,
+                child: OutlinedButton(
+                  onPressed: _openWhatsApp,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: BorderSide(color: AppColors.primaryColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    foregroundColor: AppColors.primaryColor,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.chat_outlined,
+                        color: AppColors.primaryColor,
+                        size: 20,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Chat',
+                        style: TextStyle(
+                          color: AppColors.primaryColor,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

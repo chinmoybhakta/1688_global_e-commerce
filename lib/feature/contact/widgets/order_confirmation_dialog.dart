@@ -3,12 +3,35 @@ import 'package:ecommece_site_1688/core/data/model/product_required_details/orde
 import 'package:flutter/material.dart';
 
 class OrderConfirmationDialog extends StatelessWidget {
-  final OrderDetails orderDetails;
+  final List<OrderDetails> orders; // Now accepts a list
 
-  const OrderConfirmationDialog({super.key, required this.orderDetails});
+  const OrderConfirmationDialog({super.key, required this.orders});
+
+  // Calculate total price for all orders
+  String _calculateTotalPrice() {
+    double total = 0;
+    for (var order in orders) {
+      final price = double.tryParse(
+            order.totalPrice?.replaceAll(RegExp(r'[^\d.]'), '') ?? '0',
+          ) ??
+          0;
+      total += price;
+    }
+    return '৳ ${total.toStringAsFixed(2)}';
+  }
+
+  // Calculate total items count
+  int _getTotalItems() {
+    return orders.fold(0, (sum, order) {
+      return sum + (int.tryParse(order.productQuantity ?? '0') ?? 0);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    // final totalItems = _getTotalItems();
+    // final totalPrice = _calculateTotalPrice();
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
@@ -52,13 +75,13 @@ class OrderConfirmationDialog extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // Order Summary
-            _buildOrderSummary(),
+            // Orders Summary
+            _buildOrdersSummary(),
 
             const SizedBox(height: 20),
 
-            // Contact Info
-            _buildContactInfo(),
+            // Contact Info (same for all orders)
+            if (orders.isNotEmpty) _buildContactInfo(orders.first),
 
             const SizedBox(height: 24),
 
@@ -70,7 +93,137 @@ class OrderConfirmationDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderSummary() {
+  Widget _buildOrdersSummary() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.secondaryColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primaryColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Orders Summary',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold, 
+                  fontSize: 16,
+                  color: AppColors.textPrimaryColor,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${orders.length} ${orders.length == 1 ? 'item' : 'items'}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 20, color: AppColors.textSecondaryColor),
+
+          // List all orders
+          ...orders.asMap().entries.map((entry) {
+            final index = entry.key + 1;
+            final order = entry.value;
+            return Column(
+              children: [
+                _buildOrderItem(index, order),
+                if (index < orders.length)
+                  const Divider(height: 16, color: AppColors.textSecondaryColor),
+              ],
+            );
+          }),
+
+          const Divider(height: 20, color: AppColors.textSecondaryColor),
+
+          // Grand Total
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Grand Total',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: AppColors.textPrimaryColor,
+                ),
+              ),
+              Text(
+                _calculateTotalPrice(),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderItem(int index, OrderDetails order) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Item #$index',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primaryColor,
+          ),
+        ),
+        const SizedBox(height: 4),
+        _buildRow('Product:', order.productTitle ?? 'N/A'),
+        const SizedBox(height: 2),
+        _buildRow('Variant:', order.productVariant ?? 'N/A'),
+        const SizedBox(height: 2),
+        Row(
+          children: [
+            Expanded(
+              child: _buildRow('Price:', order.productVariantPrice ?? 'N/A'),
+            ),
+            Expanded(
+              child: _buildRow('Qty:', order.productQuantity ?? '1'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text(
+            'Item Total: ${order.totalPrice ?? 'N/A'}',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primaryColor,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContactInfo(OrderDetails order) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -83,48 +236,6 @@ class OrderConfirmationDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Order Summary',
-            style: TextStyle(
-              fontWeight: FontWeight.bold, 
-              fontSize: 16,
-              color: AppColors.textPrimaryColor,
-            ),
-          ),
-          Divider(height: 20, color: AppColors.textSecondaryColor),
-          _buildRow('Order ID:', '#${orderDetails.productId ?? 'N/A'}'),
-          const SizedBox(height: 8),
-          _buildRow('Product:', orderDetails.productTitle ?? 'N/A'),
-          const SizedBox(height: 8),
-          _buildRow('Variant:', orderDetails.productVariant ?? 'N/A'),
-          const SizedBox(height: 8),
-          _buildRow('Price:', orderDetails.productVariantPrice ?? 'N/A'),
-          const SizedBox(height: 8),
-          _buildRow('Quantity:', orderDetails.productQuantity ?? '1'),
-          Divider(height: 20, color: AppColors.textSecondaryColor),
-          _buildRow(
-            'Total:',
-            "৳ ${orderDetails.totalPrice ?? 'N/A'}",
-            isTotal: true,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContactInfo() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.primaryColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primaryColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 4,
-        children: [
-          Text(
             'Contact Information',
             style: TextStyle(
               fontWeight: FontWeight.bold, 
@@ -134,21 +245,21 @@ class OrderConfirmationDialog extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Name with overflow handling
-          _buildInfoRow('Name:', orderDetails.customerName),
+          // Name
+          _buildInfoRow('Name:', order.customerName),
 
-          // Email with overflow handling
-          _buildInfoRow('Email:', orderDetails.customerEmail),
+          // Email
+          _buildInfoRow('Email:', order.customerEmail),
 
-          // Phone with overflow handling
-          _buildInfoRow('Phone:', orderDetails.customerPhone),
+          // Phone
+          _buildInfoRow('Phone:', order.customerPhone),
 
-          // WhatsApp (optional) with overflow handling
-          if (orderDetails.customerWhatsapp?.isNotEmpty == true)
-            _buildInfoRow('WhatsApp:', orderDetails.customerWhatsapp),
+          // WhatsApp (optional)
+          if (order.customerWhatsapp?.isNotEmpty == true)
+            _buildInfoRow('WhatsApp:', order.customerWhatsapp),
 
-          // Address with overflow handling
-          _buildInfoRow('Address:', orderDetails.shippingAddress)
+          // Address
+          _buildInfoRow('Address:', order.shippingAddress),
         ],
       ),
     );
@@ -156,33 +267,36 @@ class OrderConfirmationDialog extends StatelessWidget {
 
   // Helper method for consistent label-value rows
   Widget _buildInfoRow(String label, String? value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 2,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              color: AppColors.textSecondaryColor,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 70,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondaryColor,
+                fontSize: 13,
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          flex: 8,
-          child: Text(
-            value?.isNotEmpty == true ? value! : 'N/A',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textPrimaryColor,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value?.isNotEmpty == true ? value! : 'N/A',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.textPrimaryColor,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
             ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 2,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -230,29 +344,26 @@ class OrderConfirmationDialog extends StatelessWidget {
   Widget _buildRow(String label, String value, {bool isTotal = false}) {
     return Row(
       children: [
-        // Left side (label) - takes 40% of space
         Expanded(
-          flex: 4,
+          flex: 3,
           child: Text(
             label,
             style: TextStyle(
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              fontSize: isTotal ? 15 : 13,
+              fontSize: isTotal ? 14 : 12,
               color: isTotal ? AppColors.textPrimaryColor : AppColors.textSecondaryColor,
             ),
           ),
         ),
-
-        // Right side (value) - takes 60% of space
         Expanded(
-          flex: 6,
+          flex: 7,
           child: Text(
             value,
             textAlign: TextAlign.right,
             style: TextStyle(
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
               color: isTotal ? AppColors.primaryColor : AppColors.textPrimaryColor,
-              fontSize: isTotal ? 16 : 13,
+              fontSize: isTotal ? 15 : 12,
             ),
             overflow: TextOverflow.ellipsis,
           ),
