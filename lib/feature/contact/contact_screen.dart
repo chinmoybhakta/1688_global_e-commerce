@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:ecommece_site_1688/core/const/app_colors.dart';
 import 'package:ecommece_site_1688/core/data/model/product_required_details/order_details.dart';
 import 'package:ecommece_site_1688/core/data/riverpod/cart_notifier.dart';
@@ -78,7 +80,7 @@ class _ContactScreenState extends ConsumerState<ContactScreen> {
           productVariant: order.productVariant,
           productVariantPrice: order.productVariantPrice,
           productQuantity: order.productQuantity,
-          totalPrice: _calculateTotalPrice(),
+          totalPrice: order.totalPrice,
           customerName: _nameController.text.trim(),
           customerEmail: _emailController.text.trim(),
           customerPhone: _phoneController.text.trim(),
@@ -86,6 +88,8 @@ class _ContactScreenState extends ConsumerState<ContactScreen> {
           customerWhatsapp: _whatsappController.text.trim(),
         );
         completeOrders.add(completeOrder);
+
+        log("Complete Order: ${completeOrder.productTitle}, ${completeOrder.productVariant}, ${completeOrder.productVariantPrice}, ${completeOrder.productQuantity}, ${completeOrder.totalPrice}, ${completeOrder.customerName}, ${completeOrder.customerEmail}, ${completeOrder.customerPhone}, ${completeOrder.shippingAddress}, ${completeOrder.customerWhatsapp}");
       }
 
       showDialog(
@@ -239,7 +243,7 @@ class _ContactScreenState extends ConsumerState<ContactScreen> {
                             const Divider(height: 24, color: AppColors.textSecondaryColor),
                         ],
                       );
-                    }).toList(),
+                    }),
 
                     const Divider(height: 24, color: AppColors.textSecondaryColor),
 
