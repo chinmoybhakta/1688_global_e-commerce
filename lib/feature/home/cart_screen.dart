@@ -1,8 +1,11 @@
+import 'dart:developer';
+
 import 'package:ecommece_site_1688/core/const/app_colors.dart';
 import 'package:ecommece_site_1688/core/data/model/product_required_details/multi_order_details.dart';
 import 'package:ecommece_site_1688/core/data/model/product_required_details/order_details.dart';
 import 'package:ecommece_site_1688/core/data/repository/repository_impl.dart';
 import 'package:ecommece_site_1688/core/data/riverpod/cart_notifier.dart';
+import 'package:ecommece_site_1688/core/data/riverpod/currency_notifier.dart';
 import 'package:ecommece_site_1688/feature/contact/contact_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -71,7 +74,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           : _buildCartContent(cartItems, cartNotifier),
       bottomNavigationBar: isEmpty
           ? null
-          : _buildCheckoutBar(cartState, cartNotifier),
+          : _buildCheckoutBar(cartState, cartNotifier, ref),
     );
   }
 
@@ -152,6 +155,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     final int currentQty = int.tryParse(item.productQuantity ?? '0') ?? 1;
     final int maxStock = int.tryParse(item.productStock ?? '0') ?? 0;
     final bool isMaxStock = maxStock > 0 && currentQty >= maxStock;
+    final currencySymbol = ref.read(currencyProvider.notifier).currencySymbol;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -291,7 +295,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                     children: [
                       // Price
                       Text(
-                        item.productVariantPrice ?? '৳ 0',
+                        item.productVariantPrice ?? '$currencySymbol 0',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -416,16 +420,19 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         0;
     final qty = int.tryParse(item.productQuantity ?? '0') ?? 0;
     final total = price * qty;
-    return '৳ ${total.toStringAsFixed(2)}';
+    final currencySymbol = ref.read(currencyProvider.notifier).currencySymbol;
+    return '$currencySymbol ${total.toStringAsFixed(2)}';
   }
 
   Widget _buildCheckoutBar(
     MultiOrderDetails? cartState,
     CartNotifier cartNotifier,
+    WidgetRef ref,
   ) {
     final cartItems = cartState?.orders ?? [];
     final subtotal = cartNotifier.cartTotal;
     final itemCount = cartNotifier.totalItems;
+    final currencySymbol = ref.read(currencyProvider.notifier).currencySymbol;
 
     // Check if any item exceeds stock
     bool hasStockIssue = false;
@@ -466,7 +473,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 ),
                 child: _buildSummaryRow(
                   'Grand Total',
-                  '৳ ${subtotal.toStringAsFixed(2)}',
+                  '$currencySymbol ${subtotal.toStringAsFixed(2)}',
                   isTotal: true,
                 ),
               ),
@@ -478,7 +485,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
+                    color: Colors.orange,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -525,7 +532,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                           );
                         }).toList();
 
-                        Navigator.push(context, MaterialPageRoute(builder: (_)=> ContactScreen(orderDetails: orderDetailsList)));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                ContactScreen(orderDetails: orderDetailsList),
+                          ),
+                        );
                       },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,

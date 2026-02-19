@@ -138,17 +138,12 @@ class CartNotifier extends StateNotifier<MultiOrderDetails?> {
 
   double get cartTotal {
     return orders.fold(0, (sum, order) {
-      // Extract numeric value from price string
       final priceStr = order.productVariantPrice?.replaceAll(RegExp(r'[^\d.]'), '') ?? '0';
       final price = double.tryParse(priceStr) ?? 0.0;
       final qty = int.tryParse(order.productQuantity ?? '0') ?? 0;
       
       return sum + (price * qty);
     });
-  }
-
-  String get formattedCartTotal {
-    return '৳ ${cartTotal.toStringAsFixed(2)}';
   }
 
   int get totalItems {

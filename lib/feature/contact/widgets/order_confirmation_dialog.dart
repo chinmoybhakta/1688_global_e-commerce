@@ -1,6 +1,8 @@
 import 'package:ecommece_site_1688/core/const/app_colors.dart';
 import 'package:ecommece_site_1688/core/data/model/product_required_details/order_details.dart';
+import 'package:ecommece_site_1688/core/data/riverpod/currency_notifier.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class OrderConfirmationDialog extends StatelessWidget {
   final List<OrderDetails> orders; // Now accepts a list
@@ -8,7 +10,7 @@ class OrderConfirmationDialog extends StatelessWidget {
   const OrderConfirmationDialog({super.key, required this.orders});
 
   // Calculate total price for all orders
-  String _calculateTotalPrice() {
+  String _calculateTotalPrice(WidgetRef ref) {
     double total = 0;
     for (var order in orders) {
       final price = double.tryParse(
@@ -17,7 +19,8 @@ class OrderConfirmationDialog extends StatelessWidget {
           0;
       total += price;
     }
-    return '৳ ${total.toStringAsFixed(2)}';
+    final currencySymbol = ref.read(currencyProvider.notifier).currencySymbol;
+    return '$currencySymbol ${total.toStringAsFixed(2)}';
   }
 
   // Calculate total items count
@@ -154,26 +157,30 @@ class OrderConfirmationDialog extends StatelessWidget {
           const Divider(height: 20, color: AppColors.textSecondaryColor),
 
           // Grand Total
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Grand Total',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: AppColors.textPrimaryColor,
-                ),
-              ),
-              Text(
-                _calculateTotalPrice(),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: AppColors.primaryColor,
-                ),
-              ),
-            ],
+          Consumer(
+            builder: (_, ref, _) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Grand Total',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: AppColors.textPrimaryColor,
+                    ),
+                  ),
+                  Text(
+                    _calculateTotalPrice(ref),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                ],
+              );
+            }
           ),
         ],
       ),

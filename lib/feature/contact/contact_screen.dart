@@ -1,21 +1,22 @@
 import 'package:ecommece_site_1688/core/const/app_colors.dart';
 import 'package:ecommece_site_1688/core/data/model/product_required_details/order_details.dart';
 import 'package:ecommece_site_1688/core/data/riverpod/cart_notifier.dart';
+import 'package:ecommece_site_1688/core/data/riverpod/currency_notifier.dart';
 import 'package:ecommece_site_1688/core/service/google_sheets_service.dart';
 import 'package:ecommece_site_1688/feature/contact/widgets/order_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ContactScreen extends StatefulWidget {
+class ContactScreen extends ConsumerStatefulWidget {
   final List<OrderDetails> orderDetails; // Now accepts a list
 
   const ContactScreen({super.key, required this.orderDetails});
 
   @override
-  State<ContactScreen> createState() => _ContactScreenState();
+  ConsumerState<ContactScreen> createState() => _ContactScreenState();
 }
 
-class _ContactScreenState extends State<ContactScreen> {
+class _ContactScreenState extends ConsumerState<ContactScreen> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _nameController;
@@ -54,7 +55,8 @@ class _ContactScreenState extends State<ContactScreen> {
           0;
       total += price;
     }
-    return '৳ ${total.toStringAsFixed(2)}';
+    final currencySymbol = ref.read(currencyProvider.notifier).currencySymbol;
+    return '$currencySymbol ${total.toStringAsFixed(2)}';
   }
 
   // Calculate total items count
@@ -76,7 +78,7 @@ class _ContactScreenState extends State<ContactScreen> {
           productVariant: order.productVariant,
           productVariantPrice: order.productVariantPrice,
           productQuantity: order.productQuantity,
-          totalPrice: order.totalPrice,
+          totalPrice: _calculateTotalPrice(),
           customerName: _nameController.text.trim(),
           customerEmail: _emailController.text.trim(),
           customerPhone: _phoneController.text.trim(),

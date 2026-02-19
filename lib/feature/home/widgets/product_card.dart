@@ -1,11 +1,13 @@
 import 'package:ecommece_site_1688/core/const/app_colors.dart';
 import 'package:ecommece_site_1688/core/data/repository/repository_impl.dart';
+import 'package:ecommece_site_1688/core/data/riverpod/formatted_price_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends ConsumerWidget {
   final String imageUrl;
   final String title;
-  final String price;
+  final String? price;
   final VoidCallback? onTap;
 
   const ProductCard({
@@ -17,7 +19,8 @@ class ProductCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final formattedPrice = ref.watch(formattedPriceProvider(price));
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -101,7 +104,7 @@ class ProductCard extends StatelessWidget {
 
                     // Price
                     Text(
-                      price,
+                      formattedPrice,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

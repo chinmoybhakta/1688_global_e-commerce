@@ -1,10 +1,13 @@
 import 'dart:developer';
 import 'package:ecommece_site_1688/core/const/app_colors.dart';
 import 'package:ecommece_site_1688/core/data/riverpod/cart_notifier.dart';
+import 'package:ecommece_site_1688/core/data/riverpod/currency_notifier.dart';
+import 'package:ecommece_site_1688/core/data/riverpod/formatted_price_provider.dart';
 import 'package:ecommece_site_1688/core/data/riverpod/product_notifier.dart';
 import 'package:ecommece_site_1688/core/data/riverpod/search_notifier.dart';
 import 'package:ecommece_site_1688/core/service/currency_service.dart';
 import 'package:ecommece_site_1688/feature/home/cart_screen.dart';
+import 'package:ecommece_site_1688/feature/home/widgets/currency_dropdown.dart';
 import 'package:ecommece_site_1688/feature/home/widgets/product_card.dart';
 import 'package:ecommece_site_1688/feature/home/widgets/search_bar_section.dart';
 import 'package:ecommece_site_1688/feature/product/product_screen.dart';
@@ -28,29 +31,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.dispose();
   }
 
-  String? getFormattedPrice(String? originalPrice) {
-    if (originalPrice == null || originalPrice.isEmpty) {
-      return 'Price unavailable';
-    }
-
-    try {
-      final numericString = originalPrice.replaceAll(RegExp(r'[^\d.]'), '');
-      final double priceInCNY = double.tryParse(numericString) ?? 0.0;
-
-      final priceInBDT = CurrencyService.convertCnyToBdt(priceInCNY);
-      return '৳ ${priceInBDT.toStringAsFixed(2)}';
-    } catch (e) {
-      debugPrint('Error converting price: $e');
-      return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final searchState = ref.watch(searchProvider);
-
     final productState = ref.watch(productProvider);
     final isProductLoading = productState?.isLoading ?? false;
+    // ignore: unused_local_variable
     final cartState = ref.watch(cartProvider);
 
     return Scaffold(
@@ -70,6 +56,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         centerTitle: true,
         actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 75),
+            child: CurrencyDropdown()),
           Container(
             width: 48,
             height: 48,
@@ -192,8 +181,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   title: item?.title ?? "No Title",
                                   imageUrl: item!.picUrl!,
                                   price:
-                                      getFormattedPrice(item.price) ??
-                                      "Price unavailable",
+                                      item.price,
                                   onTap: () async {
                                     try {
                                       final numIid = searchState

@@ -6,6 +6,8 @@ import 'package:ecommece_site_1688/core/data/model/product_required_details/orde
 import 'package:ecommece_site_1688/core/data/model/product_required_details/order_details.dart';
 import 'package:ecommece_site_1688/core/data/repository/repository_impl.dart';
 import 'package:ecommece_site_1688/core/data/riverpod/cart_notifier.dart';
+import 'package:ecommece_site_1688/core/data/riverpod/currency_notifier.dart';
+import 'package:ecommece_site_1688/core/data/riverpod/formatted_price_provider.dart';
 import 'package:ecommece_site_1688/core/service/currency_service.dart';
 import 'package:ecommece_site_1688/feature/contact/contact_screen.dart';
 import 'package:ecommece_site_1688/feature/product/widgets/build_detail_row.dart';
@@ -16,15 +18,15 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ProductScreen extends StatefulWidget {
+class ProductScreen extends ConsumerStatefulWidget {
   final Item? item;
   const ProductScreen({super.key, required this.item});
 
   @override
-  State<ProductScreen> createState() => _ProductScreenState();
+  ConsumerState<ProductScreen> createState() => _ProductScreenState();
 }
 
-class _ProductScreenState extends State<ProductScreen> {
+class _ProductScreenState extends ConsumerState<ProductScreen> {
   int _currentImageIndex = 0;
   bool _isFavorite = false;
   int _selectedSkuIndex = -1;
@@ -171,7 +173,8 @@ class _ProductScreenState extends State<ProductScreen> {
       final double priceInCNY = double.tryParse(numericString) ?? 0.0;
 
       final priceInBDT = CurrencyService.convertCnyToBdt(priceInCNY);
-      return '৳ ${priceInBDT.toStringAsFixed(2)}';
+      final currencySymbol = ref.read(currencyProvider.notifier).currencySymbol;
+      return '$currencySymbol ${priceInBDT.toStringAsFixed(2)}';
     } catch (e) {
       debugPrint('Error converting price: $e');
       return null;
@@ -183,10 +186,12 @@ class _ProductScreenState extends State<ProductScreen> {
         widget.item?.skus?.sku != null &&
         _selectedSkuIndex < (widget.item?.skus?.sku?.length ?? 0)) {
       final sku = widget.item?.skus?.sku?[_selectedSkuIndex];
-      final formattedPrice = getFormattedPrice(sku?.price);
-      return formattedPrice ?? 'Price unavailable';
+      // Use the provider to format the price
+      return ref.read(formattedPriceProvider(sku?.price)) ??
+          'Price unavailable';
     } else {
-      return getFormattedPrice(widget.item?.price) ?? 'Price unavailable';
+      return ref.read(formattedPriceProvider(widget.item?.price)) ??
+          'Price unavailable';
     }
   }
 
@@ -201,11 +206,11 @@ class _ProductScreenState extends State<ProductScreen> {
                   ) ??
                   0) >
               0) {
-        return getFormattedPrice(sku?.orginalPrice);
+        return ref.read(formattedPriceProvider(sku?.orginalPrice));
       }
     } else if (widget.item?.orginalPrice != null &&
         widget.item?.orginalPrice!.isNotEmpty == true) {
-      return getFormattedPrice(widget.item?.orginalPrice);
+      return ref.read(formattedPriceProvider(widget.item?.orginalPrice));
     }
     return null;
   }
@@ -277,6 +282,8 @@ Go to this website to order: https://1688global.com.bd
   Widget build(BuildContext context) {
     final discount = _getDiscountPercentage();
     final originalPrice = _getOriginalPrice();
+    // ignore: unused_local_variable
+    final currentCurrency = ref.watch(currencyProvider);
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       body: CustomScrollView(
