@@ -88,8 +88,6 @@ class _ContactScreenState extends ConsumerState<ContactScreen> {
           customerWhatsapp: _whatsappController.text.trim(),
         );
         completeOrders.add(completeOrder);
-
-        log("Complete Order: ${completeOrder.productTitle}, ${completeOrder.productVariant}, ${completeOrder.productVariantPrice}, ${completeOrder.productQuantity}, ${completeOrder.totalPrice}, ${completeOrder.customerName}, ${completeOrder.customerEmail}, ${completeOrder.customerPhone}, ${completeOrder.shippingAddress}, ${completeOrder.customerWhatsapp}");
       }
 
       showDialog(

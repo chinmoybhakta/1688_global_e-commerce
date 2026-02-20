@@ -1,3 +1,4 @@
+import 'package:ecommece_site_1688/core/const/app_colors.dart';
 import 'package:ecommece_site_1688/core/data/model/product_required_details/multi_order_details.dart';
 import 'package:ecommece_site_1688/core/data/model/product_required_details/order.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +32,8 @@ class CartNotifier extends StateNotifier<MultiOrderDetails?> {
         newQty = stock;
         Fluttertoast.showToast(
           msg: 'Only $stock items available in stock',
-          backgroundColor: Colors.orange,
+          webBgColor: "#ff4000",
+          textColor: AppColors.backgroundColor,
         );
       }
       
@@ -62,7 +64,8 @@ class CartNotifier extends StateNotifier<MultiOrderDetails?> {
       if (stock > 0 && currentQty >= stock) {
         Fluttertoast.showToast(
           msg: 'Maximum stock limit reached ($stock)',
-          backgroundColor: Colors.orange,
+          webBgColor: "#ff4000",
+          textColor: AppColors.backgroundColor,
         );
         return;
       }

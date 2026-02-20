@@ -1,3 +1,4 @@
+import 'package:ecommece_site_1688/core/const/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -13,8 +14,8 @@ class Utils {
   static Future<bool?> showErrorToast({required String message}) {
     return Fluttertoast.showToast(
       msg: message,
-      backgroundColor: Colors.red,
-      textColor: Colors.white,
+      webBgColor: "#ff4000",
+      textColor: AppColors.backgroundColor,
     );
   }
 

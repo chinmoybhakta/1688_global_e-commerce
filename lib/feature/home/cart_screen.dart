@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:ecommece_site_1688/core/const/app_colors.dart';
 import 'package:ecommece_site_1688/core/data/model/product_required_details/multi_order_details.dart';
 import 'package:ecommece_site_1688/core/data/model/product_required_details/order_details.dart';

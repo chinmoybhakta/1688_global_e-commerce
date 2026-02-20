@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:ecommece_site_1688/core/const/app_colors.dart';
 import 'package:ecommece_site_1688/core/data/model/get_item/product_response.dart';
 import 'package:ecommece_site_1688/core/data/model/search_item/search_item_response.dart';
 import 'package:ecommece_site_1688/core/data/repository/repository.dart';
@@ -28,7 +29,7 @@ class RepositoryImpl extends Repository {
         );
         return ProductResponse.fromJson(response);
       } else {
-        Fluttertoast.showToast(msg: response['error'] ?? 'Unknown error');
+        Fluttertoast.showToast(msg: response['error'] ?? 'Unknown error', webBgColor: "#ff4000", textColor: AppColors.backgroundColor);
         return null;
       }
     } catch (e) {
@@ -51,7 +52,7 @@ class RepositoryImpl extends Repository {
       if (response['error_code'] == "0000") {
         return SearchItemResponse.fromJson(response);
       } else {
-        Fluttertoast.showToast(msg: response['error'] ?? 'Unknown error');
+        Fluttertoast.showToast(msg: response['error'] ?? 'Unknown error', webBgColor: "#ff4000", textColor: AppColors.backgroundColor);
         return null;
       }
     } catch (e) {

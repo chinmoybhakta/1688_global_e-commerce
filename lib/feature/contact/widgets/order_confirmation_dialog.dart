@@ -23,13 +23,6 @@ class OrderConfirmationDialog extends StatelessWidget {
     return '$currencySymbol ${total.toStringAsFixed(2)}';
   }
 
-  // Calculate total items count
-  int _getTotalItems() {
-    return orders.fold(0, (sum, order) {
-      return sum + (int.tryParse(order.productQuantity ?? '0') ?? 0);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     // final totalItems = _getTotalItems();

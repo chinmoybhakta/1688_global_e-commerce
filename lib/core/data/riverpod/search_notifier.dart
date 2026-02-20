@@ -1,83 +1,117 @@
-import 'package:ecommece_site_1688/core/data/model/search_item/search_item_response.dart';
+import 'package:ecommece_site_1688/core/data/model/search_item/search_item.dart';
 import 'package:ecommece_site_1688/core/data/repository/repository_impl.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 class SearchState {
   final bool isLoading;
-  final SearchItemResponse? data;
+  final bool isLoadingMore; // New flag for load more
+  final List<SearchItem> dataList;
   final String? error;
+  final int currentPage;
+  final bool hasReachedMax; // To know if there's more data
 
   SearchState({
     this.isLoading = false,
-    this.data,
+    this.isLoadingMore = false,
+    this.dataList = const [],
     this.error,
+    this.currentPage = 1,
+    this.hasReachedMax = false,
   });
 
   SearchState copyWith({
     bool? isLoading,
-    SearchItemResponse? data,
+    bool? isLoadingMore,
+    List<SearchItem>? dataList,
     String? error,
+    int? currentPage,
+    bool? hasReachedMax,
   }) {
     return SearchState(
       isLoading: isLoading ?? this.isLoading,
-      data: data ?? this.data,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      dataList: dataList ?? this.dataList,
       error: error,
+      currentPage: currentPage ?? this.currentPage,
+      hasReachedMax: hasReachedMax ?? this.hasReachedMax,
     );
   }
 }
 
 class SearchNotifier extends StateNotifier<SearchState> {
   final RepositoryImpl repository;
-
-  SearchNotifier(this.repository) : super(SearchState(isLoading: false));
-
   String query = " ";
-  int page = 1;
+
+  SearchNotifier(this.repository) : super(SearchState());
 
   Future<void> fetchSearchItems(String? query, int? page) async {
-    state = SearchState(isLoading: true);
-    final response = await repository.searchItems(query: query ?? " ", page: page ?? 1);
+    // Reset state for new search
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      dataList: [], // Clear previous results
+      currentPage: 1,
+      hasReachedMax: false,
+    );
+    
+    this.query = query ?? " ";
+    final response = await repository.searchItems(query: this.query, page: page ?? 1);
 
     if (response == null) {
-      state = SearchState(
+      state = state.copyWith(
         isLoading: false,
-        data: null,
         error: "Something went wrong",
       );
     } else {
-      this.query = query ?? " ";
-      this.page = page ?? 1;
-      state = SearchState(
+      final newItems = response.items?.item ?? [];
+      state = state.copyWith(
         isLoading: false,
-        data: response,
+        dataList: newItems,
         error: null,
+        currentPage: page ?? 1,
+        hasReachedMax: newItems.isEmpty, // If no items, we've reached the end
       );
     }
   }
 
   Future<void> loadMore() async {
-    state = SearchState(isLoading: true);
-    final nextPage = page + 1;
+    // Prevent multiple load more calls
+    if (state.isLoadingMore || state.hasReachedMax) return;
+    
+    final nextPage = state.currentPage + 1;
+    
+    state = state.copyWith(
+      isLoadingMore: true,
+      error: null,
+    );
+
     final response = await repository.searchItems(query: query, page: nextPage);
 
     if (response == null) {
-      state = SearchState(
-        isLoading: false,
-        data: null,
+      state = state.copyWith(
+        isLoadingMore: false,
         error: "Something went wrong",
       );
     } else {
-      page = nextPage;
-      state = SearchState(
-        isLoading: false,
-        data: response,
+      final newItems = response.items?.item ?? [];
+      
+      state = state.copyWith(
+        isLoadingMore: false,
+        dataList: [...state.dataList, ...newItems],
+        currentPage: nextPage,
+        hasReachedMax: newItems.isEmpty,
         error: null,
       );
     }
   }
+
+  // Optional: Reset search
+  void resetSearch() {
+    query = "";
+    state = SearchState();
+  }
 }
 
-final searchProvider =
-    StateNotifierProvider<SearchNotifier, SearchState>((ref) {
+final searchProvider = StateNotifierProvider<SearchNotifier, SearchState>((ref) {
   return SearchNotifier(RepositoryImpl());
 });

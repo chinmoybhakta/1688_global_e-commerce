@@ -57,7 +57,8 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
         });
         Fluttertoast.showToast(
           msg: "Quantity cannot be less than 1",
-          backgroundColor: Colors.orange,
+          webBgColor: "#ff4000",
+          textColor: AppColors.backgroundColor,
         );
       } else if (newQuantity > maxStock) {
         setState(() {
@@ -68,7 +69,8 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
           msg: maxStock > 0
               ? "Only $maxStock items available in stock"
               : "This variant is out of stock",
-          backgroundColor: Colors.orange,
+          webBgColor: "#ffecda",
+          textColor: AppColors.textPrimaryColor,
         );
       } else {
         setState(() {
@@ -80,7 +82,8 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
       if (value.isNotEmpty) {
         Fluttertoast.showToast(
           msg: "Please enter a valid number",
-          backgroundColor: Colors.red,
+          webBgColor: "#ff4000",
+          textColor: AppColors.backgroundColor,
         );
       }
     }
@@ -273,7 +276,8 @@ Go to this website to order: https://1688global.com.bd
       debugPrint('Error sharing: $e');
       Fluttertoast.showToast(
         msg: 'Could not open share sheet',
-        backgroundColor: Colors.red,
+        webBgColor: "#ff4000",
+        textColor: AppColors.backgroundColor,
       );
     }
   }
@@ -739,7 +743,8 @@ Go to this website to order: https://1688global.com.bd
                                   Fluttertoast.showToast(
                                     msg:
                                         "Maximum stock limit reached ($maxStock)",
-                                    backgroundColor: Colors.orange,
+                                    webBgColor: "#ff4000",
+                                    textColor: AppColors.backgroundColor,
                                   );
                                 }
                               },
@@ -982,8 +987,8 @@ Go to this website to order: https://1688global.com.bd
                             msg: "Please select a variant",
                             toastLength: Toast.LENGTH_SHORT,
                             gravity: ToastGravity.BOTTOM,
-                            backgroundColor: Colors.red,
-                            textColor: Colors.white,
+                            webBgColor: "#ff4000",
+                            textColor: AppColors.backgroundColor,
                           );
                           return;
                         }
@@ -1012,8 +1017,8 @@ Go to this website to order: https://1688global.com.bd
                             msg: "Added to cart",
                             toastLength: Toast.LENGTH_SHORT,
                             gravity: ToastGravity.BOTTOM,
-                            backgroundColor: AppColors.primaryColor,
-                            textColor: Colors.white,
+                            webBgColor: "#ff4000",
+                            textColor: AppColors.backgroundColor,
                           );
                         } catch (e) {
                           log("Error in adding to cart: $e");
@@ -1021,8 +1026,8 @@ Go to this website to order: https://1688global.com.bd
                             msg: "Failed to add to cart",
                             toastLength: Toast.LENGTH_SHORT,
                             gravity: ToastGravity.BOTTOM,
-                            backgroundColor: Colors.red,
-                            textColor: Colors.white,
+                            webBgColor: "#ff4000",
+                            textColor: AppColors.backgroundColor,
                           );
                         }
                       },
@@ -1061,8 +1066,8 @@ Go to this website to order: https://1688global.com.bd
                         msg: "Please select a variant",
                         toastLength: Toast.LENGTH_SHORT,
                         gravity: ToastGravity.BOTTOM,
-                        backgroundColor: Colors.red,
-                        textColor: Colors.white,
+                        webBgColor: "#ff4000",
+                        textColor: AppColors.backgroundColor,
                       );
                       return;
                     }
